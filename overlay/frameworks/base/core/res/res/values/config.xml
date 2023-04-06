@@ -169,7 +169,7 @@
     <integer name="config_defaultRefreshRate">0</integer>
 
     <!-- The default peak refresh rate. -->
-    <integer name="config_defaultPeakRefreshRate">60</integer>
+    <integer name="config_defaultPeakRefreshRate">120</integer>
 
     <!-- Optional IPsec algorithms enabled by this device, defaulting to empty. OEMs can override
          it by providing a list of algorithm names in an overlay config.xml file.
@@ -309,4 +309,6 @@
 
     <!-- Pre-scale volume at volume step 3 for Absolute Volume -->
     <fraction name="config_prescaleAbsoluteVolume_index3">100%</fraction>
+    
+    <bool name="config_Google_apps_can_have_special_access_to_accelerators">true</bool>
 </resources>
