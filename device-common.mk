@@ -63,3 +63,6 @@ PRODUCT_PRODUCT_PROPERTIES += persist.arm64.memtag.system_server=off
 else
 PRODUCT_PRODUCT_PROPERTIES += persist.arm64.memtag.app.com.android.chrome=off
 endif
+
+TARGET_SYSTEM_PROP := device/google/zuma/system.prop
+
