@@ -5,7 +5,7 @@
 #
 
 # Overlays
-DEVICE_PACKAGE_OVERLAYS += device/google/zuma/overlay-lineage
+DEVICE_PACKAGE_OVERLAYS += device/google/zuma/overlay-derp
 
 # AiAi Config
 PRODUCT_COPY_FILES += \
