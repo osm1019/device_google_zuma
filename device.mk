@@ -898,7 +898,7 @@ endif
 
 PRODUCT_PACKAGES += ShannonRcs
 
-ifeq ($(DERP_BUILD),)
+ifeq ($(LINEAGE_BUILD),)
 ifeq (,$(filter aosp_% factory_%,$(TARGET_PRODUCT)))
 #ImsMediaAoc library
 FEATURE_TYPE := oem_audio
