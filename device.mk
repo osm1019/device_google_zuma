@@ -79,7 +79,7 @@ PRODUCT_SOONG_NAMESPACES += \
 	hardware/google/pixel \
 	device/google/zuma \
 	device/google/zuma/powerstats \
-	system/chre/host/hal_generic \
+	vendor/google_devices/common/chre/host/hal \
 	vendor/google/whitechapel/tools \
 	vendor/google/interfaces \
 	vendor/google_devices/common/proprietary/confirmatioui_hal \
@@ -91,6 +91,11 @@ LOCAL_KERNEL := $(TARGET_KERNEL_DIR)/Image.lz4
 
 # Set the environment variable to switch the Keymint HAL service to Rust
 TRUSTY_KEYMINT_IMPL := rust
+
+ifeq ($(RELEASE_AVF_ENABLE_LLPVM_CHANGES),true)
+	# Set the environment variable to enable the Secretkeeper HAL service.
+	SECRETKEEPER_ENABLED := true
+endif
 
 # OEM Unlock reporting
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
@@ -178,26 +183,26 @@ PRODUCT_PRODUCT_PROPERTIES += \
 
 # Set supported Bluetooth profiles to enabled
 PRODUCT_PRODUCT_PROPERTIES += \
-	bluetooth.profile.asha.central.enabled=true \
-	bluetooth.profile.a2dp.source.enabled=true \
-	bluetooth.profile.avrcp.target.enabled=true \
-	bluetooth.profile.bap.unicast.server.enabled=true \
-	bluetooth.profile.bas.client.enabled=true \
-	bluetooth.profile.csip.set_coordinator.enabled=true \
-	bluetooth.profile.gatt.enabled=true \
-	bluetooth.profile.hap.client.enabled=true \
-	bluetooth.profile.hfp.ag.enabled=true \
-	bluetooth.profile.hid.device.enabled=true \
-	bluetooth.profile.hid.host.enabled=true \
-	bluetooth.profile.map.server.enabled=true \
-	bluetooth.profile.mcp.server.enabled=true \
-	bluetooth.profile.opp.enabled=true \
-	bluetooth.profile.pan.nap.enabled=true \
-	bluetooth.profile.pan.panu.enabled=true \
-	bluetooth.profile.pbap.server.enabled=true \
-	bluetooth.profile.sap.server.enabled=true \
-	bluetooth.profile.tbs.server.enabled=true \
-	bluetooth.profile.vc.server.enabled=true
+	bluetooth.profile.asha.central.enabled?=true \
+	bluetooth.profile.a2dp.source.enabled?=true \
+	bluetooth.profile.avrcp.target.enabled?=true \
+	bluetooth.profile.bap.unicast.server.enabled?=true \
+	bluetooth.profile.bas.client.enabled?=true \
+	bluetooth.profile.csip.set_coordinator.enabled?=true \
+	bluetooth.profile.gatt.enabled?=true \
+	bluetooth.profile.hap.client.enabled?=true \
+	bluetooth.profile.hfp.ag.enabled?=true \
+	bluetooth.profile.hid.device.enabled?=true \
+	bluetooth.profile.hid.host.enabled?=true \
+	bluetooth.profile.map.server.enabled?=true \
+	bluetooth.profile.mcp.server.enabled?=true \
+	bluetooth.profile.opp.enabled?=true \
+	bluetooth.profile.pan.nap.enabled?=true \
+	bluetooth.profile.pan.panu.enabled?=true \
+	bluetooth.profile.pbap.server.enabled?=true \
+	bluetooth.profile.sap.server.enabled?=true \
+	bluetooth.profile.tbs.server.enabled?=true \
+	bluetooth.profile.vc.server.enabled?=true
 
 # Carrier configuration default location
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -206,8 +211,13 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
 	telephony.active_modems.max_count=2
 
+ifneq (,$(filter userdebug eng, $(TARGET_BUILD_VARIANT)))
 PRODUCT_PROPERTY_OVERRIDES += \
 	persist.vendor.usb.displayport.enabled=1
+else
+PRODUCT_PROPERTY_OVERRIDES += \
+	persist.vendor.usb.displayport.enabled=1
+endif
 
 USE_LASSEN_OEMHOOK := true
 
@@ -279,6 +289,7 @@ PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.hardware.vulkan.version-1_3.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version.xml \
 	frameworks/native/data/etc/android.hardware.vulkan.level-1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.level.xml \
 	frameworks/native/data/etc/android.hardware.vulkan.compute-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.compute.xml \
+	frameworks/native/data/etc/android.software.contextualsearch.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.contextualsearch.xml \
 	frameworks/native/data/etc/android.software.vulkan.deqp.level-2023-03-01.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.vulkan.deqp.level.xml \
 	frameworks/native/data/etc/android.software.opengles.deqp.level-2023-03-01.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.opengles.deqp.level.xml
 
@@ -291,8 +302,7 @@ PRODUCT_VENDOR_PROPERTIES += \
 
 PRODUCT_VENDOR_PROPERTIES += \
 	ro.opengles.version=196610 \
-	graphics.gpu.profiler.support=true \
-	debug.renderengine.backend=skiaglthreaded \
+	graphics.gpu.profiler.support=true
 
 # b/295257834 Add HDR shaders to SurfaceFlinger's pre-warming cache
 PRODUCT_VENDOR_PROPERTIES += ro.surface_flinger.prime_shader_cache.ultrahdr=1
@@ -381,25 +391,24 @@ PRODUCT_HOST_PACKAGES += \
 PRODUCT_PACKAGES += \
 	messaging
 
-# Contexthub HAL
-PRODUCT_PACKAGES += \
-	android.hardware.contexthub-service.generic
-
-# CHRE tools
+# CHRE
+## Tools
 ifneq (,$(filter eng, $(TARGET_BUILD_VARIANT)))
 PRODUCT_PACKAGES += \
 	chre_power_test_client \
-	chre_test_client
+	chre_test_client \
+	chre_aidl_hal_client
 endif
 
+## HAL
+include device/google/gs-common/chre/hal.mk
 PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.hardware.context_hub.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.context_hub.xml
 
 ## Enable the CHRE Daemon
-CHRE_USF_DAEMON_ENABLED := true
+CHRE_USF_DAEMON_ENABLED := false
 CHRE_DEDICATED_TRANSPORT_CHANNEL_ENABLED := true
 PRODUCT_PACKAGES += \
-	chre \
 	preloaded_nanoapps.json
 
 # Filesystem management tools
@@ -686,6 +695,7 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += debug.sf.earlyGl.app.duration=16600000
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += debug.sf.frame_rate_multiple_threshold=120
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += debug.sf.treat_170m_as_sRGB=1
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += debug.sf.hwc_hotplug_error_via_neg_vsync=1
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += debug.sf.hwc_hdcp_via_neg_vsync=1
 
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.surface_flinger.enable_layer_caching=true
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.surface_flinger.set_idle_timer_ms?=80
@@ -708,12 +718,11 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.surface_flinger.use_color_management=tr
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.surface_flinger.protected_contents=true
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.surface_flinger.display_update_imminent_timeout_ms=50
 
-# force to blend in P3 mode
 PRODUCT_PROPERTY_OVERRIDES += \
-	persist.sys.sf.native_mode=2 \
-	persist.sys.sf.color_mode=9
+	persist.sys.sf.native_mode=2
 PRODUCT_COPY_FILES += \
-	device/google/zuma/display/display_colordata_cal0.pb:$(TARGET_COPY_OUT_VENDOR)/etc/display_colordata_cal0.pb
+	device/google/zuma/display/display_colordata_cal0.pb:$(TARGET_COPY_OUT_VENDOR)/etc/display_colordata_cal0.pb \
+	device/google/zuma/display/display_colordata_cal2.pb:$(TARGET_COPY_OUT_VENDOR)/etc/display_colordata_cal2.pb
 
 # limit DPP downscale ratio
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += vendor.hwc.dpp.downscale=4
@@ -836,7 +845,7 @@ PRODUCT_SOONG_NAMESPACES += \
 	vendor/google/trusty/common
 
 PRODUCT_PACKAGES += \
- 	trusty_metricsd
+	trusty_metricsd
 
 $(call soong_config_set,google_displaycolor,displaycolor_platform,zuma)
 PRODUCT_PACKAGES += \
@@ -982,6 +991,9 @@ endif
 # modem logging binary/configs
 PRODUCT_PACKAGES += modem_logging_control
 
+# libeomservice_proxy binary/configs
+PRODUCT_PACKAGES += liboemservice_proxy_default
+
 # PILOT SCENARIOS
 PRODUCT_PACKAGES += \
 	Pixel_stability.cfg \
@@ -1031,7 +1043,7 @@ PRODUCT_PACKAGES += \
 
 # Audio
 # Audio HAL Server & Default Implementations
-ifeq ($(RELEASE_PIXEL_AIDL_AUDIO_HAL),true)
+ifeq ($(USE_AUDIO_HAL_AIDL),true)
 include device/google/gs-common/audio/aidl.mk
 else
 include device/google/gs-common/audio/hidl_zuma.mk
@@ -1096,6 +1108,14 @@ PRODUCT_PROPERTY_OVERRIDES += persist.vendor.enable.thermal.genl=true
 include device/google/gs-common/edgetpu/edgetpu.mk
 # Config variables for TPU chip on device.
 $(call soong_config_set,edgetpu_config,chip,rio)
+# Include the edgetpu targets defined the namespaces below into the final image.
+PRODUCT_SOONG_NAMESPACES += \
+	vendor/google_devices/zuma/proprietary/gchips/tpu/metrics \
+	vendor/google_devices/zuma/proprietary/gchips/tpu/tflite_delegate \
+	vendor/google_devices/zuma/proprietary/gchips/tpu/darwinn_logging_service \
+	vendor/google_devices/zuma/proprietary/gchips/tpu/nnapi_stable_aidl \
+	vendor/google_devices/zuma/proprietary/gchips/tpu/aidl \
+	vendor/google_devices/zuma/proprietary/gchips/tpu/hal
 # TPU firmware
 PRODUCT_PACKAGES += edgetpu-rio.fw
 
@@ -1193,6 +1213,7 @@ endif
 
 # Touch service
 include hardware/google/pixel/input/twoshay.mk
+include device/google/gs-common/touch/twoshay/aidl_zuma.mk
 
 # Allow longer timeout for incident report generation in bugreport
 # Overriding in /product partition instead of /vendor intentionally,
