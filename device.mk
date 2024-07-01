@@ -16,6 +16,7 @@
 
 PRODUCT_BROKEN_VERIFY_USES_LIBRARIES := true
 
+include vendor/google/faceunlock/device.mk
 include device/google/gs-common/device.mk
 include device/google/gs-common/gs_watchdogd/watchdog.mk
 include device/google/gs-common/ramdump/ramdump.mk
